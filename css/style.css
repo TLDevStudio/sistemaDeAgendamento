@@ -16,7 +16,8 @@ body {
     background: #f0f2f7;
     color: #1a1d27;
     min-height: 100vh;
-    overflow-x: hidden
+    overflow-x: hidden;
+    width: 100%;
 }
 
 button,
@@ -2816,4 +2817,101 @@ img {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #9ca3af
+}
+
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden
+}
+
+input,
+select,
+textarea {
+    font-size: 16px !important
+}
+
+* {
+    max-width: 100%;
+    box-sizing: border-box
+}
+
+.main-content {
+    overflow-x: hidden;
+    min-width: 0
+}
+
+.page {
+    overflow-x: hidden
+}
+
+@media(max-width:900px) {
+
+    .week-grid,
+    .month-grid,
+    .daily-grid {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch
+    }
+
+    .week-grid {
+        min-width: 500px
+    }
+
+    .stats-row {
+        grid-template-columns: repeat(2, 1fr)
+    }
+
+    .slots-grid {
+        grid-template-columns: repeat(3, 1fr)
+    }
+
+    .form-row {
+        grid-template-columns: 1fr
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch
+    }
+}
+
+@media(max-width:600px) {
+
+    input,
+    select,
+    textarea {
+        font-size: 16px !important
+    }
+
+    .booking-steps {
+        overflow-x: auto;
+        padding-bottom: 4px
+    }
+
+    .svc-grid,
+    .prof-grid {
+        grid-template-columns: repeat(2, 1fr)
+    }
+
+    .slots-grid {
+        grid-template-columns: repeat(3, 1fr)
+    }
+
+    .reports-grid {
+        grid-template-columns: 1fr
+    }
+
+    .portal-layout {
+        grid-template-columns: 1fr
+    }
+
+    .booking-layout {
+        grid-template-columns: 1fr
+    }
+
+    .dash-grid {
+        grid-template-columns: 1fr
+    }
 }
