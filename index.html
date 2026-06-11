@@ -23,38 +23,6 @@
     <div class="loader-msg">Conectando ao Firebase...</div>
   </div>
 
-  <div id="setupScreen">
-    <div class="setup-card">
-      <div class="setup-logo">
-        <div class="setup-logo-icon"><i class="ti ti-calendar-event"></i></div>
-        <div class="setup-logo-name">Agenda<span>Pro</span></div>
-      </div>
-      <div class="setup-title">⚙️ Configure o Firebase</div>
-      <div class="setup-sub">Para usar o sistema real, você precisa conectar ao seu projeto Firebase. É gratuito e leva
-        5 minutos.</div>
-      <div class="setup-steps">
-        <b>Passo 1:</b> Acesse <code>console.firebase.google.com</code><br>
-        <b>Passo 2:</b> Crie um projeto novo (ex: <code>agendapro-minha-barbearia</code>)<br>
-        <b>Passo 3:</b> Vá em <b>Authentication</b> → Ative o provedor <b>E-mail/Senha</b><br>
-        <b>Passo 4:</b> Vá em <b>Firestore</b> → Crie um banco de dados<br>
-        <b>Passo 5:</b> Vá em <b>Configurações do projeto</b> → <b>Seus apps</b> → Adicione um app Web<br>
-        <b>Passo 6:</b> Copie as credenciais e cole abaixo
-      </div>
-      <div class="form-group"><label class="form-label">API Key</label><input class="form-input" id="cfg-apiKey"
-          placeholder="AIzaSy..."></div>
-      <div class="form-group"><label class="form-label">Auth Domain</label><input class="form-input" id="cfg-authDomain"
-          placeholder="seu-projeto.firebaseapp.com"></div>
-      <div class="form-group"><label class="form-label">Project ID</label><input class="form-input" id="cfg-projectId"
-          placeholder="seu-projeto-id"></div>
-      <div class="form-group"><label class="form-label">App ID</label><input class="form-input" id="cfg-appId"
-          placeholder="1:123456:web:abc123"></div>
-      <button class="btn btn-primary btn-full btn-lg" onclick="saveFirebaseConfig()"><i class="ti ti-check"></i> Salvar
-        e conectar</button>
-      <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:12px">As credenciais ficam salvas no seu
-        navegador (localStorage). Não são enviadas para terceiros.</p>
-    </div>
-  </div>
-
   <div id="authScreen">
     <div class="auth-card">
       <div class="auth-logo">

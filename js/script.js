@@ -2,34 +2,21 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/fireba
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, sendPasswordResetEmail, updatePassword as fbUpdatePassword } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import { getFirestore, collection, addDoc, getDocs, getDoc, updateDoc, deleteDoc, doc, query, where, orderBy, serverTimestamp, onSnapshot, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
-const savedCfg = (() => { try { return JSON.parse(localStorage.getItem('agendapro_firebase_cfg') || 'null'); } catch (e) { return null; } })();
+const firebaseConfig = {
+    apiKey: "AIzaSyDaAGIQISuoOaWIfAmj3-j2g0qSCXqWvzw",
+    authDomain: "sistema-agendamento-55f5d.firebaseapp.com",
+    projectId: "sistema-agendamento-55f5d",
+    storageBucket: "sistema-agendamento-55f5d.firebasestorage.app",
+    messagingSenderId: "15729427661",
+    appId: "1:15729427661:web:698f6973090727e4b59584"
+};
+
+const savedCfg = firebaseConfig;
 
 if (!savedCfg) {
     document.getElementById('appLoader').style.display = 'none';
     document.getElementById('setupScreen').classList.add('show');
 }
-
-window.saveFirebaseConfig = function () {
-    const cfg = {
-        apiKey: document.getElementById('cfg-apiKey').value.trim(),
-        authDomain: document.getElementById('cfg-authDomain').value.trim(),
-        projectId: document.getElementById('cfg-projectId').value.trim(),
-        appId: document.getElementById('cfg-appId').value.trim(),
-        storageBucket: document.getElementById('cfg-authDomain').value.replace('firebaseapp.com', 'appspot.com'),
-        messagingSenderId: ''
-    };
-    if (!cfg.apiKey || !cfg.authDomain || !cfg.projectId || !cfg.appId) {
-        showToast('Preencha todos os campos', 'error'); return;
-    }
-    localStorage.setItem('agendapro_firebase_cfg', JSON.stringify(cfg));
-    showToast('Configuração salva! Recarregando...', 'success');
-    setTimeout(() => location.reload(), 1200);
-};
-
-window.switchFirebaseConfig = function () {
-    document.getElementById('authScreen').classList.remove('show');
-    document.getElementById('setupScreen').classList.add('show');
-};
 
 if (!savedCfg) { window.initApp = () => { }; } else {
     let app, auth, db;
