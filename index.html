@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgendaPro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+
+<body>
+
+  <div id="appLoader">
+    <div class="loader-logo">
+      <div class="loader-logo-icon"><i class="ti ti-calendar-event"></i></div>
+      <div class="loader-logo-text">Agenda<span>Pro</span></div>
+    </div>
+    <div class="loader-spinner"></div>
+    <div class="loader-msg">Conectando ao Firebase...</div>
+  </div>
+
+  <div id="setupScreen">
+    <div class="setup-card">
+      <div class="setup-logo">
+        <div class="setup-logo-icon"><i class="ti ti-calendar-event"></i></div>
+        <div class="setup-logo-name">Agenda<span>Pro</span></div>
+      </div>
+      <div class="setup-title">⚙️ Configure o Firebase</div>
+      <div class="setup-sub">Para usar o sistema real, você precisa conectar ao seu projeto Firebase. É gratuito e leva
+        5 minutos.</div>
+      <div class="setup-steps">
+        <b>Passo 1:</b> Acesse <code>console.firebase.google.com</code><br>
+        <b>Passo 2:</b> Crie um projeto novo (ex: <code>agendapro-minha-barbearia</code>)<br>
+        <b>Passo 3:</b> Vá em <b>Authentication</b> → Ative o provedor <b>E-mail/Senha</b><br>
+        <b>Passo 4:</b> Vá em <b>Firestore</b> → Crie um banco de dados<br>
+        <b>Passo 5:</b> Vá em <b>Configurações do projeto</b> → <b>Seus apps</b> → Adicione um app Web<br>
+        <b>Passo 6:</b> Copie as credenciais e cole abaixo
+      </div>
+      <div class="form-group"><label class="form-label">API Key</label><input class="form-input" id="cfg-apiKey"
+          placeholder="AIzaSy..."></div>
+      <div class="form-group"><label class="form-label">Auth Domain</label><input class="form-input" id="cfg-authDomain"
+          placeholder="seu-projeto.firebaseapp.com"></div>
+      <div class="form-group"><label class="form-label">Project ID</label><input class="form-input" id="cfg-projectId"
+          placeholder="seu-projeto-id"></div>
+      <div class="form-group"><label class="form-label">App ID</label><input class="form-input" id="cfg-appId"
+          placeholder="1:123456:web:abc123"></div>
+      <button class="btn btn-primary btn-full btn-lg" onclick="saveFirebaseConfig()"><i class="ti ti-check"></i> Salvar
+        e conectar</button>
+      <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:12px">As credenciais ficam salvas no seu
+        navegador (localStorage). Não são enviadas para terceiros.</p>
+    </div>
+  </div>
+
+  <div id="authScreen">
+    <div class="auth-card">
+      <div class="auth-logo">
+        <div class="auth-logo-icon"><i class="ti ti-calendar-event"></i></div>
+        <div class="auth-logo-name">Agenda<span>Pro</span></div>
+      </div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Entrar</button>
+        <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Criar conta</button>
+      </div>
+      <div id="authError" class="auth-error"></div>
+
+      <div id="loginForm">
+        <div class="form-group"><label class="form-label">E-mail</label><input type="email" class="form-input"
+            id="loginEmail" placeholder="seu@email.com"></div>
+        <div class="form-group"><label class="form-label">Senha</label><input type="password" class="form-input"
+            id="loginPassword" placeholder="••••••••"></div>
+        <span class="forgot-link" onclick="doResetPassword()">Esqueceu a senha?</span>
+        <button class="btn btn-primary btn-full btn-lg" id="btnLogin" onclick="doLogin()"><i class="ti ti-login"></i>
+          Entrar</button>
+        <!-- <div class="divider">ou</div>
+        <button class="btn btn-ghost btn-full" onclick="switchFirebaseConfig()"><i class="ti ti-settings"></i>
+          Reconfigurar Firebase</button> -->
+      </div>
+
+      <div id="registerForm" style="display:none">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Nome</label><input type="text" class="form-input"
+              id="regNome" placeholder="João"></div>
+          <div class="form-group"><label class="form-label">Sobrenome</label><input type="text" class="form-input"
+              id="regSobrenome" placeholder="Silva"></div>
+        </div>
+        <div class="form-group"><label class="form-label">E-mail</label><input type="email" class="form-input"
+            id="regEmail" placeholder="seu@email.com"></div>
+        <div class="form-group"><label class="form-label">Telefone / WhatsApp</label><input type="tel"
+            class="form-input" id="regTelefone" placeholder="(21) 99999-0000"></div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Senha</label><input type="password" class="form-input"
+              id="regSenha" placeholder="••••••••"></div>
+          <div class="form-group"><label class="form-label">Confirmar</label><input type="password" class="form-input"
+              id="regSenhaConf" placeholder="••••••••"></div>
+        </div>
+        <button class="btn btn-primary btn-full btn-lg" id="btnRegister" onclick="doRegister()"><i
+            class="ti ti-user-plus"></i> Criar conta</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="mainApp">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon"><i class="ti ti-calendar-event"></i></div>
+        <span class="sidebar-logo-text">Agenda<span>Pro</span></span>
+      </div>
+      <div id="adminNav">
+        <div class="sidebar-section">Principal</div>
+        <div class="nav-item active" onclick="navigate('dashboard')"><i
+            class="ti ti-layout-dashboard"></i><span>Dashboard</span></div>
+        <div class="nav-item" onclick="navigate('agenda')"><i class="ti ti-calendar"></i><span>Agenda</span></div>
+        <div class="nav-item" onclick="navigate('booking')"><i class="ti ti-calendar-plus"></i><span>Novo
+            Agendamento</span></div>
+        <div class="sidebar-section">Gestão</div>
+        <div class="nav-item" onclick="navigate('services')"><i class="ti ti-scissors"></i><span>Serviços</span></div>
+        <div class="nav-item" onclick="navigate('team')"><i class="ti ti-users"></i><span>Equipe</span></div>
+        <div class="nav-item" onclick="navigate('clients')"><i class="ti ti-address-book"></i><span>Clientes</span>
+        </div>
+        <div class="nav-item" onclick="navigate('reports')"><i class="ti ti-chart-bar"></i><span>Relatórios</span></div>
+        <div class="sidebar-section">Sistema</div>
+        <div class="nav-item" onclick="navigate('notifications')"><i
+            class="ti ti-bell"></i><span>Notificações</span><span class="nav-badge hidden" id="notifBadge">0</span>
+        </div>
+        <div class="nav-item" onclick="navigate('settings')"><i class="ti ti-settings"></i><span>Configurações</span>
+        </div>
+      </div>
+      <div id="clientNav" style="display:none">
+        <div class="sidebar-section">Menu</div>
+        <div class="nav-item active" onclick="navigate('clientPortal')"><i class="ti ti-home"></i><span>Minha
+            Área</span></div>
+        <div class="nav-item" onclick="navigate('booking')"><i class="ti ti-calendar-plus"></i><span>Agendar</span>
+        </div>
+        <div class="nav-item" onclick="navigate('notifications')"><i class="ti ti-bell"></i><span>Notificações</span>
+        </div>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="sidebar-user" onclick="doLogout()">
+          <div class="user-avatar ua-violet" id="sidebarAvatar">--</div>
+          <div class="user-info">
+            <div class="user-name" id="sidebarUserName">Carregando...</div>
+            <div class="user-role" id="sidebarUserRole">...</div>
+          </div>
+          <i class="ti ti-logout" style="color:rgba(255,255,255,.3);font-size:16px"></i>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <div class="topbar">
+        <div>
+          <div class="topbar-title" id="topbarTitle">Dashboard</div>
+        </div>
+        <div class="topbar-spacer"></div>
+        <div class="topbar-search"><i class="ti ti-search"></i><input type="text" placeholder="Buscar..."
+            id="globalSearch" oninput="globalSearchFn(this.value)"></div>
+        <button class="topbar-btn" onclick="navigate('notifications')"><i class="ti ti-bell"
+            style="font-size:20px"></i><span class="dot" id="notifDot" style="display:none"></span></button>
+        <button class="topbar-btn" onclick="navigate('settings')"><i class="ti ti-settings"
+            style="font-size:20px"></i></button>
+      </div>
+
+      <div id="page-dashboard" class="page hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="ph-title" id="dashGreeting">Bom dia! 👋</div>
+            <div class="ph-sub" id="dashDate">Carregando...</div>
+          </div>
+          <div class="page-header-right">
+            <button class="btn btn-primary" onclick="navigate('booking')"><i class="ti ti-plus"></i> Novo
+              Agendamento</button>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-card violet">
+            <div class="stat-icon"><i class="ti ti-calendar-check"></i></div>
+            <div class="stat-label">Agendamentos hoje</div>
+            <div class="stat-value" id="statToday">0</div>
+            <div class="stat-change stat-neutral">agendamentos</div>
+          </div>
+          <div class="stat-card mint">
+            <div class="stat-icon"><i class="ti ti-currency-dollar"></i></div>
+            <div class="stat-label">Faturamento do mês</div>
+            <div class="stat-value" id="statRevenue">R$0</div>
+            <div class="stat-change stat-neutral">este mês</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-icon"><i class="ti ti-users"></i></div>
+            <div class="stat-label">Clientes cadastrados</div>
+            <div class="stat-value" id="statClients">0</div>
+            <div class="stat-change stat-neutral">total</div>
+          </div>
+          <div class="stat-card rose">
+            <div class="stat-icon"><i class="ti ti-x"></i></div>
+            <div class="stat-label">Cancelamentos</div>
+            <div class="stat-value" id="statCancel">0</div>
+            <div class="stat-change stat-neutral">este mês</div>
+          </div>
+        </div>
+        <div class="dash-grid">
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div class="card">
+              <div class="card-header" style="padding-bottom:0">
+                <div class="card-title">Agenda de hoje</div>
+              </div>
+              <div class="appt-list" id="todayAppts"></div>
+              <div class="card-footer"><button class="btn btn-secondary" onclick="navigate('agenda')"><i
+                    class="ti ti-arrow-right"></i> Ver agenda completa</button></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div class="card">
+              <div class="card-header" style="padding-bottom:14px">
+                <div class="card-title">Resumo do dia</div>
+              </div>
+              <div class="card-body" style="padding-top:0">
+                <div style="display:flex;flex-direction:column;gap:10px">
+                  <div
+                    style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--mint-pale);border-radius:var(--radius);border-left:3px solid var(--mint)">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#065f46"><i
+                        class="ti ti-check" style="font-size:16px"></i>Confirmados</div><span
+                      style="font-size:20px;font-weight:800;color:#065f46" id="sumConfirmed">0</span>
+                  </div>
+                  <div
+                    style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--amber-pale);border-radius:var(--radius);border-left:3px solid var(--amber)">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#92400e"><i
+                        class="ti ti-clock" style="font-size:16px"></i>Pendentes</div><span
+                      style="font-size:20px;font-weight:800;color:#92400e" id="sumPending">0</span>
+                  </div>
+                  <div
+                    style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--violet-pale);border-radius:var(--radius);border-left:3px solid var(--violet2)">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#5b21b6"><i
+                        class="ti ti-player-play" style="font-size:16px"></i>Em andamento</div><span
+                      style="font-size:20px;font-weight:800;color:#5b21b6" id="sumInProgress">0</span>
+                  </div>
+                  <div
+                    style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--rose-pale);border-radius:var(--radius);border-left:3px solid var(--rose)">
+                    <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#9f1239"><i
+                        class="ti ti-x" style="font-size:16px"></i>Cancelados</div><span
+                      style="font-size:20px;font-weight:800;color:#9f1239" id="sumCanceled">0</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header" style="padding-bottom:14px">
+                <div class="card-title">Ações rápidas</div>
+              </div>
+              <div class="card-body" style="padding-top:0;display:flex;flex-direction:column;gap:8px">
+                <button class="btn btn-primary btn-full" onclick="navigate('booking')"><i
+                    class="ti ti-calendar-plus"></i> Novo agendamento</button>
+                <button class="btn btn-ghost btn-full" onclick="openModal('serviceModal')"><i class="ti ti-plus"></i>
+                  Adicionar serviço</button>
+                <button class="btn btn-ghost btn-full" onclick="openModal('employeeModal')"><i
+                    class="ti ti-user-plus"></i> Adicionar funcionário</button>
+                <button class="btn btn-ghost btn-full" onclick="navigate('reports')"><i class="ti ti-file-text"></i> Ver
+                  relatórios</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-agenda" class="page hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="ph-title">Agenda</div>
+            <div class="ph-sub">Visualize e gerencie todos os agendamentos</div>
+          </div>
+          <div class="page-header-right">
+            <button class="btn btn-primary" onclick="navigate('booking')"><i class="ti ti-plus"></i> Novo
+              Agendamento</button>
+          </div>
+        </div>
+        <div class="agenda-toolbar">
+          <div class="view-tabs">
+            <button class="view-tab active" onclick="setView('week',this)">Semanal</button>
+            <button class="view-tab" onclick="setView('day',this)">Diário</button>
+            <button class="view-tab" onclick="setView('month',this)">Mensal</button>
+          </div>
+          <div class="nav-week">
+            <button class="nav-week-btn" onclick="prevPeriod()"><i class="ti ti-chevron-left"></i></button>
+            <span class="nav-week-label" id="periodLabel">—</span>
+            <button class="nav-week-btn" onclick="nextPeriod()"><i class="ti ti-chevron-right"></i></button>
+          </div>
+          <button class="btn btn-secondary" onclick="goToday()" style="padding:6px 14px;font-size:13px">Hoje</button>
+        </div>
+        <div id="agendaViewWrap"></div>
+      </div>
+
+      <div id="page-booking" class="page hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="ph-title">Novo Agendamento</div>
+            <div class="ph-sub">Siga os passos para agendar um serviço</div>
+          </div>
+        </div>
+        <div class="booking-steps" id="bookingSteps">
+          <div class="booking-step active" id="bstep1">
+            <div class="bs-circle">1</div><span class="bs-label">Serviço</span>
+            <div class="bs-line"></div>
+          </div>
+          <div class="booking-step" id="bstep2">
+            <div class="bs-circle">2</div><span class="bs-label">Profissional</span>
+            <div class="bs-line"></div>
+          </div>
+          <div class="booking-step" id="bstep3">
+            <div class="bs-circle">3</div><span class="bs-label">Data</span>
+            <div class="bs-line"></div>
+          </div>
+          <div class="booking-step" id="bstep4">
+            <div class="bs-circle">4</div><span class="bs-label">Horário</span>
+            <div class="bs-line"></div>
+          </div>
+          <div class="booking-step" id="bstep5">
+            <div class="bs-circle">5</div><span class="bs-label">Confirmar</span>
+            <div class="bs-line" style="display:none"></div>
+          </div>
+        </div>
+        <div class="booking-layout">
+          <div>
+            <div class="booking-panel active card" id="bpanel1">
+              <div class="card-header">
+                <div class="card-title">Escolha o serviço</div>
+              </div>
+              <div class="card-body">
+                <div class="svc-grid" id="svcPickerGrid">
+                  <div class="empty-state">
+                    <div class="empty-icon"><i class="ti ti-scissors"></i></div>
+                    <div class="empty-title">Nenhum serviço ativo</div>
+                    <div class="empty-sub">Adicione serviços na aba Serviços</div>
+                  </div>
+                </div>
+              </div>
+              <div class="card-footer"><button class="btn btn-primary" onclick="nextStep(2)">Próximo <i
+                    class="ti ti-arrow-right"></i></button></div>
+            </div>
+            <div class="booking-panel card" id="bpanel2">
+              <div class="card-header">
+                <div class="card-title">Escolha o profissional</div>
+              </div>
+              <div class="card-body">
+                <div class="prof-grid" id="profPickerGrid"></div>
+              </div>
+              <div class="card-footer"><button class="btn btn-ghost" onclick="nextStep(1)"><i
+                    class="ti ti-arrow-left"></i> Voltar</button><button class="btn btn-primary"
+                  onclick="nextStep(3)">Próximo <i class="ti ti-arrow-right"></i></button></div>
+            </div>
+            <div class="booking-panel card" id="bpanel3">
+              <div class="card-header">
+                <div class="card-title">Escolha a data</div>
+              </div>
+              <div class="card-body">
+                <div class="cal-picker">
+                  <div class="cal-picker-header">
+                    <button class="cal-picker-nav" onclick="calPickerPrev()"><i class="ti ti-chevron-left"></i></button>
+                    <span class="cal-picker-month" id="calPickerMonth">—</span>
+                    <button class="cal-picker-nav" onclick="calPickerNext()"><i
+                        class="ti ti-chevron-right"></i></button>
+                  </div>
+                  <div class="cal-picker-grid" id="calPickerGrid"></div>
+                </div>
+              </div>
+              <div class="card-footer"><button class="btn btn-ghost" onclick="nextStep(2)"><i
+                    class="ti ti-arrow-left"></i> Voltar</button><button class="btn btn-primary"
+                  onclick="nextStep(4)">Próximo <i class="ti ti-arrow-right"></i></button></div>
+            </div>
+            <div class="booking-panel card" id="bpanel4">
+              <div class="card-header">
+                <div class="card-title">Horários disponíveis</div><span class="badge badge-gray"
+                  id="slotsDateLabel">—</span>
+              </div>
+              <div class="card-body">
+                <div class="slots-grid" id="slotsGrid"></div>
+                <div style="margin-top:14px;font-size:12px;color:var(--text3);display:flex;align-items:center;gap:8px">
+                  <span
+                    style="width:16px;height:16px;border-radius:4px;background:#f3f4f6;border:2px dashed var(--border2);display:inline-block"></span>Ocupado
+                  <span
+                    style="width:16px;height:16px;border-radius:4px;background:#fff;border:2px solid var(--border);display:inline-block"></span>Disponível
+                  <span
+                    style="width:16px;height:16px;border-radius:4px;background:var(--violet2);display:inline-block"></span>Selecionado
+                </div>
+              </div>
+              <div class="card-footer"><button class="btn btn-ghost" onclick="nextStep(3)"><i
+                    class="ti ti-arrow-left"></i> Voltar</button><button class="btn btn-primary"
+                  onclick="nextStep(5)">Próximo <i class="ti ti-arrow-right"></i></button></div>
+            </div>
+            <div class="booking-panel card" id="bpanel5">
+              <div class="card-header">
+                <div class="card-title">Confirmar agendamento</div>
+              </div>
+              <div class="card-body">
+                <div id="confirmScreen" style="display:none" class="confirm-screen">
+                  <div class="confirm-icon"><i class="ti ti-check"></i></div>
+                  <div class="confirm-title">Agendamento confirmado!</div>
+                  <div class="confirm-sub">O agendamento foi salvo com sucesso no sistema.</div>
+                  <button class="btn btn-primary" onclick="resetBooking()"><i class="ti ti-plus"></i> Novo
+                    agendamento</button>
+                </div>
+                <div id="confirmForm">
+                  <div class="form-group"><label class="form-label">Nome do cliente</label><input type="text"
+                      class="form-input" id="clientNameInput" placeholder="Nome completo"></div>
+                  <div class="form-row">
+                    <div class="form-group"><label class="form-label">Telefone / WhatsApp</label><input type="tel"
+                        class="form-input" id="clientPhoneInput" placeholder="(21) 99999-0000"></div>
+                    <div class="form-group"><label class="form-label">E-mail</label><input type="email"
+                        class="form-input" id="clientEmailInput" placeholder="email@exemplo.com"></div>
+                  </div>
+                  <div class="form-group"><label class="form-label">Observações</label><textarea class="form-input"
+                      rows="2" id="clientObsInput" placeholder="Alguma observação especial?"></textarea></div>
+                </div>
+              </div>
+              <div class="card-footer" id="confirmFooter">
+                <button class="btn btn-ghost" onclick="nextStep(4)"><i class="ti ti-arrow-left"></i> Voltar</button>
+                <button class="btn btn-primary" id="btnConfirmBooking" onclick="confirmBooking()"><i
+                    class="ti ti-check"></i> Confirmar agendamento</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="booking-summary" id="bookingSummary">
+              <div class="bs-title"><i class="ti ti-receipt" style="color:var(--violet2)"></i> Resumo</div>
+              <div class="bs-row"><span class="bs-key">Serviço</span><span class="bs-val" id="sumService">—</span></div>
+              <div class="bs-row"><span class="bs-key">Profissional</span><span class="bs-val" id="sumPro">—</span>
+              </div>
+              <div class="bs-row"><span class="bs-key">Data</span><span class="bs-val" id="sumDate">—</span></div>
+              <div class="bs-row"><span class="bs-key">Horário</span><span class="bs-val" id="sumTime">—</span></div>
+              <div class="bs-row"><span class="bs-key">Duração</span><span class="bs-val" id="sumDur">—</span></div>
+              <div class="bs-total"><span class="bs-total-label">Total</span><span class="bs-total-val"
+                  id="sumPrice">—</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-services" class="page hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="ph-title">Serviços</div>
+            <div class="ph-sub">Gerencie os serviços oferecidos</div>
+          </div>
+          <div class="page-header-right"><button class="btn btn-primary" onclick="openModal('serviceModal')"><i
+                class="ti ti-plus"></i> Novo Serviço</button></div>
+        </div>
+        <div class="services-grid" id="servicesGrid"></div>
+      </div>
+
+      <div id="page-team" class="page hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="ph-title">Equipe</div>
+            <div class="ph-sub">Gerencie os profissionais</div>
+          </div>
+          <div class="page-header-right"><button class="btn btn-primary" onclick="openModal('employeeModal')"><i
+                class="ti ti-user-plus"></i> Adicionar Funcionário</button></div>
+        </div>
+        <div class="team-grid" id="teamGrid"></div>
+      </div>
+
+      <div id="page-clients" class="page hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="ph-title">Clientes</div>
+            <div class="ph-sub" id="clientsCount">0 clientes cadastrados</div>
+          </div>
+          <div class="page-header-right">
+            <button class="btn btn-primary" onclick="openModal('clientModal')"><i class="ti ti-user-plus"></i> Novo
+              Cliente</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <div class="table-toolbar">
+            <div class="table-search"><i class="ti ti-search"></i><input type="text"
+                placeholder="Buscar por nome, e-mail ou telefone..." oninput="filterClients(this.value)"></div>
+          </div>
+          <table class="data-table" id="clientsTable">
+            <thead>
+              <tr>
+                <th>Cliente</th>
+                <th>Telefone</th>
+                <th>E-mail</th>
+                <th>Agendamentos</th>
+                <th>Cadastro</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="clientsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="page-reports" class="page hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="ph-title">Relatórios</div>
+            <div class="ph-sub">Análise de desempenho do negócio</div>
+          </div>
+        </div>
+        <div class="stats-row" style="margin-bottom:20px">
+          <div class="stat-card violet">
+            <div class="stat-icon"><i class="ti ti-calendar-check"></i></div>
+            <div class="stat-label">Total agendamentos</div>
+            <div class="stat-value" id="rptTotal">0</div>
+          </div>
+          <div class="stat-card mint">
+            <div class="stat-icon"><i class="ti ti-currency-dollar"></i></div>
+            <div class="stat-label">Faturamento total</div>
+            <div class="stat-value" id="rptRevenue">R$0</div>
+          </div>
+          <div class="stat-card amber">
+            <div class="stat-icon"><i class="ti ti-users"></i></div>
+            <div class="stat-label">Clientes totais</div>
+            <div class="stat-value" id="rptClients">0</div>
+          </div>
+          <div class="stat-card rose">
+            <div class="stat-icon"><i class="ti ti-x"></i></div>
+            <div class="stat-label">Cancelamentos</div>
+            <div class="stat-value" id="rptCancel">0</div>
+          </div>
+        </div>
+        <div class="reports-grid">
+          <div class="card">
+            <div class="card-header" style="padding-bottom:16px">
+              <div class="card-title">Serviços mais agendados</div>
+            </div>
+            <div class="card-body" style="padding-top:0" id="rptServicesChart"></div>
+          </div>
+          <div class="card">
+            <div class="card-header" style="padding-bottom:16px">
+              <div class="card-title">Faturamento por profissional</div>
+            </div>
+            <div class="card-body" style="padding-top:0" id="rptProsChart"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-notifications" class="page hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="ph-title">Notificações</div>
+            <div class="ph-sub">Central de alertas</div>
+          </div>
+          <div class="page-header-right"><button class="btn btn-secondary" onclick="markAllRead()"><i
+                class="ti ti-checks"></i> Marcar todas como lidas</button></div>
+        </div>
+        <div class="notif-list-page" id="notifList"></div>
+      </div>
+
+      <div id="page-settings" class="page hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="ph-title">Configurações</div>
+            <div class="ph-sub">Gerencie as configurações do negócio</div>
+          </div>
+          <div class="page-header-right"><button class="btn btn-primary" onclick="saveSettings()"><i
+                class="ti ti-device-floppy"></i> Salvar alterações</button></div>
+        </div>
+        <div class="settings-layout">
+          <div class="settings-nav">
+            <div class="sn-item active" onclick="switchSettingsTab('empresa',this)"><i class="ti ti-building"></i>
+              Empresa</div>
+            <div class="sn-item" onclick="switchSettingsTab('horarios',this)"><i class="ti ti-clock"></i> Horários</div>
+            <div class="sn-item" onclick="switchSettingsTab('conta',this)"><i class="ti ti-user"></i> Minha conta</div>
+          </div>
+          <div class="settings-content">
+            <div class="card" id="stab-empresa">
+              <div class="card-header">
+                <div class="card-title">Dados da empresa</div>
+              </div>
+              <div class="card-body">
+                <div class="form-row" style="margin-bottom:16px">
+                  <div class="form-group"><label class="form-label">Nome da empresa</label><input type="text"
+                      class="form-input" id="cfgNomeEmpresa" placeholder="Ex: Barbearia Studio"></div>
+                  <div class="form-group"><label class="form-label">Telefone</label><input type="tel" class="form-input"
+                      id="cfgTelEmpresa" placeholder="(21) 3333-0000"></div>
+                </div>
+                <div class="form-group" style="margin-bottom:16px"><label class="form-label">Endereço</label><input
+                    type="text" class="form-input" id="cfgEndEmpresa" placeholder="Rua, número — Cidade, UF"></div>
+                <div class="form-row" style="margin-bottom:16px">
+                  <div class="form-group"><label class="form-label">Instagram</label><input type="text"
+                      class="form-input" id="cfgInstagram" placeholder="@seunegoicio"></div>
+                  <div class="form-group"><label class="form-label">WhatsApp</label><input type="tel" class="form-input"
+                      id="cfgWhatsapp" placeholder="(21) 99999-0000"></div>
+                </div>
+                <div class="form-group"><label class="form-label">Sobre o negócio</label><textarea class="form-input"
+                    rows="3" id="cfgSobre" placeholder="Descreva seu negócio..."></textarea></div>
+              </div>
+            </div>
+            <div class="card hidden" id="stab-horarios">
+              <div class="card-header">
+                <div class="card-title">Horário de funcionamento</div>
+              </div>
+              <div class="card-body">
+                <div id="hoursEditor"></div>
+              </div>
+            </div>
+            <div class="card hidden" id="stab-conta">
+              <div class="card-header">
+                <div class="card-title">Minha conta</div>
+              </div>
+              <div class="card-body">
+                <div
+                  style="display:flex;align-items:center;gap:16px;margin-bottom:20px;padding:16px;background:#f8f9ff;border-radius:var(--radius)">
+                  <div class="user-avatar ua-violet" style="width:60px;height:60px;font-size:20px" id="settingsAvatar">
+                    --</div>
+                  <div>
+                    <div style="font-size:16px;font-weight:700" id="settingsName">Carregando...</div>
+                    <div style="font-size:13px;color:var(--text3)" id="settingsEmail">...</div>
+                  </div>
+                </div>
+                <div class="form-group"><label class="form-label">Nova senha</label><input type="password"
+                    class="form-input" id="newPassword" placeholder="Deixe em branco para não alterar"></div>
+                <button class="btn btn-secondary" onclick="updatePassword()" style="margin-bottom:16px"><i
+                    class="ti ti-key"></i> Alterar senha</button>
+                <hr style="border:none;border-top:1px solid var(--border);margin:16px 0">
+                <button class="btn btn-danger" onclick="doLogout()"><i class="ti ti-logout"></i> Sair da conta</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="page-clientPortal" class="page hidden">
+        <div class="page-header">
+          <div class="page-header-left">
+            <div class="ph-title">Minha área</div>
+            <div class="ph-sub">Seus agendamentos</div>
+          </div>
+          <div class="page-header-right"><button class="btn btn-primary" onclick="navigate('booking')"><i
+                class="ti ti-calendar-plus"></i> Novo agendamento</button></div>
+        </div>
+        <div class="portal-layout">
+          <div>
+            <div class="card" style="margin-bottom:20px">
+              <div class="card-header" style="padding-bottom:14px">
+                <div class="card-title">Próximos agendamentos</div>
+              </div>
+              <div id="upcomingAppts" style="padding:0 20px 20px"></div>
+            </div>
+            <div class="card">
+              <div class="card-header" style="padding-bottom:14px">
+                <div class="card-title">Histórico</div>
+              </div>
+              <div class="portal-history" style="padding:0 20px 20px" id="historyAppts"></div>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="margin-bottom:16px">
+              <div class="card-header" style="padding-bottom:14px">
+                <div class="card-title">Meus dados</div>
+              </div>
+              <div class="card-body" style="padding-top:0">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+                  <div class="user-avatar ua-violet" style="width:48px;height:48px;font-size:16px" id="portalAvatar">--
+                  </div>
+                  <div>
+                    <div style="font-size:15px;font-weight:700" id="portalName">Carregando...</div>
+                    <div style="font-size:12px;color:var(--text3)" id="portalEmail">...</div>
+                  </div>
+                </div>
+                <div class="form-group"><label class="form-label">Nome completo</label><input class="form-input"
+                    id="portalNameInput"></div>
+                <div class="form-group"><label class="form-label">WhatsApp</label><input class="form-input"
+                    id="portalPhone"></div>
+                <button class="btn btn-primary btn-full" style="margin-top:8px" onclick="savePortalProfile()"><i
+                    class="ti ti-device-floppy"></i> Salvar</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header" style="padding-bottom:14px">
+                <div class="card-title">Estatísticas</div>
+              </div>
+              <div class="card-body" style="padding-top:0;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <div style="background:#f8f9ff;border-radius:var(--radius);padding:12px;text-align:center">
+                  <div style="font-size:24px;font-weight:800;color:var(--violet2)" id="portalStatCount">0</div>
+                  <div style="font-size:11px;color:var(--text3)">Agendamentos</div>
+                </div>
+                <div style="background:#f8f9ff;border-radius:var(--radius);padding:12px;text-align:center">
+                  <div style="font-size:24px;font-weight:800;color:var(--mint)" id="portalStatSpent">R$0</div>
+                  <div style="font-size:11px;color:var(--text3)">Total gasto</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="modal-overlay hidden" id="serviceModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="serviceModalTitle">Novo Serviço</div><button class="modal-close"
+          onclick="closeModal('serviceModal')"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editServiceId">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Nome do serviço</label><input class="form-input"
+              id="svcNome" placeholder="Ex: Corte Masculino"></div>
+          <div class="form-group"><label class="form-label">Preço (R$)</label><input type="number" class="form-input"
+              id="svcPreco" placeholder="45.00" step="0.01"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Duração (min)</label><input type="number" class="form-input"
+              id="svcDuracao" placeholder="30"></div>
+          <div class="form-group"><label class="form-label">Ícone</label>
+            <select class="form-input" id="svcIcone">
+              <option value="ti-scissors">✂️ Tesoura</option>
+              <option value="ti-razor">🪒 Navalha</option>
+              <option value="ti-stars">⭐ Estrelas</option>
+              <option value="ti-sparkles">✨ Brilhos</option>
+              <option value="ti-eyeglass">👁 Sobrancelha</option>
+              <option value="ti-color-swatch">🎨 Coloração</option>
+              <option value="ti-brush">🖌 Pincel</option>
+              <option value="ti-droplet">💧 Tratamento</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label class="form-label">Descrição</label><textarea class="form-input" rows="2"
+            id="svcDesc" placeholder="Descreva o serviço..."></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('serviceModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveService()"><i class="ti ti-check"></i> Salvar serviço</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="employeeModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title" id="employeeModalTitle">Novo Funcionário</div><button class="modal-close"
+          onclick="closeModal('employeeModal')"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editEmployeeId">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Nome completo</label><input class="form-input" id="empNome"
+              placeholder="Nome completo"></div>
+          <div class="form-group"><label class="form-label">Especialidade</label><input class="form-input" id="empEspec"
+              placeholder="Ex: Barbeiro"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Telefone</label><input type="tel" class="form-input"
+              id="empTel" placeholder="(21) 99999-0000"></div>
+          <div class="form-group"><label class="form-label">E-mail</label><input type="email" class="form-input"
+              id="empEmail" placeholder="func@email.com"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Horário</label>
+          <div class="form-row">
+            <input type="time" class="form-input" id="empEntrada" value="09:00">
+            <input type="time" class="form-input" id="empSaida" value="19:00">
+          </div>
+        </div>
+        <div class="form-group"><label class="form-label">Dias de trabalho</label>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox"
+                class="empDia" value="Seg" checked> Seg</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox"
+                class="empDia" value="Ter" checked> Ter</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox"
+                class="empDia" value="Qua" checked> Qua</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox"
+                class="empDia" value="Qui" checked> Qui</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox"
+                class="empDia" value="Sex" checked> Sex</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox"
+                class="empDia" value="Sáb" checked> Sáb</label>
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer"><input type="checkbox"
+                class="empDia" value="Dom"> Dom</label>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('employeeModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveEmployee()"><i class="ti ti-check"></i> Salvar funcionário</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="clientModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Novo Cliente</div><button class="modal-close" onclick="closeModal('clientModal')"><i
+            class="ti ti-x"></i></button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group"><label class="form-label">Nome completo</label><input class="form-input" id="cliNome"
+              placeholder="Nome completo"></div>
+          <div class="form-group"><label class="form-label">Telefone / WhatsApp</label><input class="form-input"
+              id="cliTel" placeholder="(21) 99999-0000"></div>
+        </div>
+        <div class="form-group"><label class="form-label">E-mail</label><input class="form-input" id="cliEmail"
+            placeholder="cliente@email.com"></div>
+        <div class="form-group"><label class="form-label">Observações</label><textarea class="form-input" rows="2"
+            id="cliObs" placeholder="Preferências, alergias, etc."></textarea></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" onclick="closeModal('clientModal')">Cancelar</button>
+        <button class="btn btn-primary" onclick="saveClient()"><i class="ti ti-check"></i> Salvar cliente</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="apptDetailModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">Detalhes do Agendamento</div><button class="modal-close"
+          onclick="closeModal('apptDetailModal')"><i class="ti ti-x"></i></button>
+      </div>
+      <div class="modal-body" id="apptDetailBody"></div>
+      <div class="modal-footer" id="apptDetailFooter"></div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script type="module" src="./js/script.js"></script>
+
+</body>
+
+</html>
